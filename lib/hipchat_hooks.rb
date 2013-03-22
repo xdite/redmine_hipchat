@@ -163,6 +163,15 @@ class NotificationHook < Redmine::Hook::Listener
     words[0..(length-1)].join(' ') + (words.length > length ? end_string : '')
   end
 
+  def issue_status_changed?(issue)
+    if issue.status_id_changed?
+      old_status = IssueStatus.find(issue.status_id_was)
+      "從 #{old_status.name} 變更為 #{issue.status.name}"
+    else
+      "#{issue.status.name}"
+    end
+  end
+  
 
   def issue_assigned_changed?(issue)
     if issue.assigned_to_id_changed?
