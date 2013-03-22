@@ -54,27 +54,6 @@ class NotificationHook < Redmine::Hook::Listener
   end
 
 
-  def controller_issues_edit_after_save(context = {})
-    issue   = context[:issue]
-    project = issue.project
-    return true if !hipchat_configured?(project)
-
-    author  = CGI::escapeHTML(User.current.name)
-    tracker = CGI::escapeHTML(issue.tracker.name.downcase)
-    subject = CGI::escapeHTML(issue.subject)
-    comment = CGI::escapeHTML(context[:journal].notes)
-    url     = get_url(issue)
-    text    = "#{author} updated #{project.name} #{tracker} <a href='#{url}''>##{issue.id}</a>: #{subject}"
-    text   += ": <i>#{truncate(comment)}</i>" unless comment.blank?
-
-    data          = {}
-    data[:text]   = text
-    data[:token]  = hipchat_auth_token(project)
-    data[:room]   = hipchat_room_name(project)
-    data[:notify] = hipchat_notify(project)
-
-    send_message(data)
-  end
 
   def controller_wiki_edit_after_save(context = {})
     page    = context[:page]
