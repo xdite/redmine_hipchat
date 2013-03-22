@@ -38,6 +38,7 @@ class NotificationHook < Redmine::Hook::Listener
     assigned_message = issue_assigned_changed?(issue)
     status_message = issue_status_changed?(issue)
     url     = get_url(issue)
+    subject = CGI::escapeHTML(issue.subject)
 
     text = ""
     text += "#{editor.name} 編輯 #{tracker} <a href='#{url}'> ##{issue.id} </a> : #{subject}"
