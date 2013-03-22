@@ -27,6 +27,30 @@ class NotificationHook < Redmine::Hook::Listener
     send_message(data)
   end
 
+
+
+  def controller_issues_edit_before_save(context = { })
+    issue   = context[:issue]
+    project = issue.project
+    journal = context[:journal]
+    editor = journal.user
+    assigned_message = issue_assigned_changed?(issue)
+    status_message = issue_status_changed?(issue)
+    
+    text = ""
+    text += "#{editor.name} 編輯 #{tracker} <a href='#{url}'> ##{issue.id} </a> : #{subject}"
+    text += "狀態:「#{status_message}」. 分派給:「#{assigned_message}」. 意見:「#{truncate(journal.notes)}」"
+
+    data          = {}
+    data[:text]   = text
+    data[:token]  = hipchat_auth_token(project)
+    data[:room]   = hipchat_room_name(project)
+    data[:notify] = hipchat_notify(project)
+
+    send_message(data)
+  end
+
+
   def controller_issues_edit_after_save(context = {})
     issue   = context[:issue]
     project = issue.project
