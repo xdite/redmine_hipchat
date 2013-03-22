@@ -34,6 +34,7 @@ class NotificationHook < Redmine::Hook::Listener
     project = issue.project
     journal = context[:journal]
     editor = journal.user
+    tracker = CGI::escapeHTML(issue.tracker.name.downcase)
     assigned_message = issue_assigned_changed?(issue)
     status_message = issue_status_changed?(issue)
 
@@ -171,7 +172,7 @@ class NotificationHook < Redmine::Hook::Listener
       "#{issue.status.name}"
     end
   end
-  
+
 
   def issue_assigned_changed?(issue)
     if issue.assigned_to_id_changed?
