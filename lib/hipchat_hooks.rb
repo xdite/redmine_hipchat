@@ -11,8 +11,13 @@ class NotificationHook < Redmine::Hook::Listener
     tracker = CGI::escapeHTML(issue.tracker.name.downcase)
     subject = CGI::escapeHTML(issue.subject)
     url     = get_url(issue)
-    text    = "#{author} reported #{project.name} #{tracker} <a href=\"#{url}\">##{issue.id}</a>: #{subject}"
 
+    assigned_message = issue.assigned_to.nil? ? "NULL" : "#{issue.assigned_to.name}"
+
+    text =   "#{author} 建立 #{tracker} <a href='#{url}'> ##{issue.id} </a> : #{subject}"
+    text +=  "狀態:「#{issue.status.name}」. 分派給:「#{assigned_message}」. 意見:「#{truncate(issue.description)}」"
+
+    
     data          = {}
     data[:text]   = text
     data[:token]  = hipchat_auth_token(project)
@@ -32,7 +37,7 @@ class NotificationHook < Redmine::Hook::Listener
     subject = CGI::escapeHTML(issue.subject)
     comment = CGI::escapeHTML(context[:journal].notes)
     url     = get_url(issue)
-    text    = "#{author} updated #{project.name} #{tracker} <a href=\"#{url}\">##{issue.id}</a>: #{subject}"
+    text    = "#{author} updated #{project.name} #{tracker} <a href='#{url}''>##{issue.id}</a>: #{subject}"
     text   += ": <i>#{truncate(comment)}</i>" unless comment.blank?
 
     data          = {}
@@ -70,9 +75,9 @@ class NotificationHook < Redmine::Hook::Listener
     if !project.hipchat_auth_token.empty? && !project.hipchat_room_name.empty?
       return true
     elsif Setting.plugin_redmine_hipchat[:projects] &&
-          Setting.plugin_redmine_hipchat[:projects].include?(project.id.to_s) &&
-          Setting.plugin_redmine_hipchat[:auth_token] &&
-          Setting.plugin_redmine_hipchat[:room_id]
+        Setting.plugin_redmine_hipchat[:projects].include?(project.id.to_s) &&
+        Setting.plugin_redmine_hipchat[:auth_token] &&
+        Setting.plugin_redmine_hipchat[:room_id]
       return true
     else
       Rails.logger.info "Not sending HipChat message - missing config"
@@ -97,8 +102,8 @@ class NotificationHook < Redmine::Hook::Listener
 
   def get_url(object)
     case object
-      when Issue    then "#{Setting[:protocol]}://#{Setting[:host_name]}/issues/#{object.id}"
-      when WikiPage then "#{Setting[:protocol]}://#{Setting[:host_name]}/projects/#{object.wiki.project.identifier}/wiki/#{object.title}"
+    when Issue    then "#{Setting[:protocol]}://#{Setting[:host_name]}/issues/#{object.id}"
+    when WikiPage then "#{Setting[:protocol]}://#{Setting[:host_name]}/projects/#{object.wiki.project.identifier}/wiki/#{object.title}"
     else
       Rails.logger.info "Asked redmine_hipchat for the url of an unsupported object #{object.inspect}"
     end
@@ -108,11 +113,11 @@ class NotificationHook < Redmine::Hook::Listener
     Rails.logger.info "Sending message to HipChat: #{data[:text]}"
     req = Net::HTTP::Post.new("/v1/rooms/message")
     req.set_form_data({
-      :auth_token => data[:token],
-      :room_id => data[:room],
-      :notify => data[:notify] ? 1 : 0,
-      :from => 'Redmine',
-      :message => data[:text]
+                        :auth_token => data[:token],
+                        :room_id => data[:room],
+                        :notify => data[:notify] ? 1 : 0,
+                        :from => 'Redmine',
+                        :message => data[:text]
     })
     req["Content-Type"] = 'application/x-www-form-urlencoded'
 
