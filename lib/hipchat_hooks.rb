@@ -17,7 +17,7 @@ class NotificationHook < Redmine::Hook::Listener
     text =   "#{author} 建立 #{tracker} <a href='#{url}'> ##{issue.id} </a> : #{subject}"
     text +=  "狀態:「#{issue.status.name}」. 分派給:「#{assigned_message}」. 意見:「#{truncate(issue.description)}」"
 
-    
+
     data          = {}
     data[:text]   = text
     data[:token]  = hipchat_auth_token(project)
@@ -36,7 +36,7 @@ class NotificationHook < Redmine::Hook::Listener
     editor = journal.user
     assigned_message = issue_assigned_changed?(issue)
     status_message = issue_status_changed?(issue)
-    
+
     text = ""
     text += "#{editor.name} 編輯 #{tracker} <a href='#{url}'> ##{issue.id} </a> : #{subject}"
     text += "狀態:「#{status_message}」. 分派給:「#{assigned_message}」. 意見:「#{truncate(journal.notes)}」"
@@ -161,5 +161,17 @@ class NotificationHook < Redmine::Hook::Listener
     return unless text
     words = text.split()
     words[0..(length-1)].join(' ') + (words.length > length ? end_string : '')
+  end
+
+
+  def issue_assigned_changed?(issue)
+    if issue.assigned_to_id_changed?
+      old_assigned_to = User.find(issue.assigned_to_id_was) rescue nil
+      old_assigned = old_assigned_to.nil? ? "無" : "#{old_assigned_to.lastname} #{old_assigned_to.firstname}"
+      new_assigned = issue.assigned_to.nil? ? "無" : "#{issue.assigned_to.lastname} #{issue.assigned_to.firstname}"
+      "從 #{old_assigned} 變更為 #{new_assigned}"
+    else
+      issue.assigned_to.nil? ? "無" : "#{issue.assigned_to.lastname} #{issue.assigned_to.firstname}"
+    end
   end
 end
